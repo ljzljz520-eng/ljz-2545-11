@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>慢行站 · 路线投稿</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">🚶 慢行站 <span>路线投稿与审核</span></div>
+  <div class="role-switch">
+    身份：
+    <select id="roleSelect">
+      <option value="token-author">小林（作者）</option>
+      <option value="token-author2">阿周（作者）</option>
+      <option value="token-reviewer">老陈（审核员）</option>
+      <option value="token-admin">站长（管理员）</option>
+    </select>
+    <span id="netState" class="net online">● 在线</span>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button data-tab="author" class="tab active">✍️ 我的投稿</button>
+  <button data-tab="editor" class="tab">📝 编辑路线</button>
+  <button data-tab="review" class="tab">🔍 审核台</button>
+  <button data-tab="admin" class="tab">⭐ 精选管理</button>
+  <button data-tab="public" class="tab">🌉 公开浏览</button>
+</nav>
+
+<main>
+  <!-- ============ 作者：路线列表 ============ -->
+  <section id="tab-author" class="tabpane active">
+    <div class="card">
+      <h2>我的路线</h2>
+      <div class="row">
+        <button id="newRouteBtn" class="primary">＋ 新建路线</button>
+        <span class="hint">草稿分支自动保存；提交后进入审核，审核中修改会让旧审核失效。</span>
+      </div>
+      <table id="routeTable" class="data">
+        <thead><tr><th>标题</th><th>状态</th><th>版本</th><th>更新时间</th><th>操作</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <h3>待发队列（离线时请求会排队，联网后自动重送并去重）</h3>
+      <div id="queueBox" class="queue"></div>
+    </div>
+  </section>
+
+  <!-- ============ 编辑器 ============ -->
+  <section id="tab-editor" class="tabpane">
+    <div class="editor-grid">
+      <div class="card map-card">
+        <div class="map-toolbar">
+          <button id="toolAdd" class="tool active">＋ 顶点</button>
+          <button id="toolStop" class="tool">歇脚点</button>
+          <button id="toolMove" class="tool">拖动顶点</button>
+          <button id="toolDelete" class="tool danger">删除顶点</button>
+          <button id="undoBtn">撤销</button>
+          <span class="hint">点击地图加点；折线自交/越界由服务端拒绝。</span>
+        </div>
+        <canvas id="map" width="760" height="460"></canvas>
+        <div class="seg-bar" id="segBar"></div>
+      </div>
+      <div class="card side-card">
+        <h2 id="editorTitle">路线</h2>
+        <input type="hidden" id="routeId">
+        <label>标题<input id="fTitle" maxlength="80" placeholder="给路线起个名字"></label>
+        <label>故事<textarea id="fStory" maxlength="5000" rows="5" placeholder="这条路的风景、记忆与理由"></textarea></label>
+        <div class="lockline">
+          整路线版本：<b id="routeVersion">-</b>
+          <button id="saveFullBtn" class="primary">整线保存（乐观锁）</button>
+          <button id="saveTextBtn">只存文字</button>
+        </div>
+        <div id="lockConflict" class="conflict hidden"></div>
+
+        <h3>歇脚点 <span class="hint" id="stopHint"></span></h3>
+        <ul id="stopList" class="stops"></ul>
+        <div id="relocateBox" class="conflict hidden"></div>
+
+        <h3>照片</h3>
+        <input type="file" id="photoInput" accept="image/png,image/jpeg,image/webp">
+        <ul id="photoList" class="photos"></ul>
+
+        <div class="submit-row">
+          <input id="reason" maxlength="1000" placeholder="投稿说明 / 本次改动理由（危险路口怎么处理的）">
+          <button id="submitBtn" class="primary big">提交审核</button>
+          <button id="withdrawBtn" class="danger">撤回</button>
+        </div>
+        <div id="editorMsg" class="msg"></div>
+        <h3>审核记录</h3>
+        <ul id="reviewHistory" class="reviews"></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 审核台 ============ -->
+  <section id="tab-review" class="tabpane">
+    <div class="card">
+      <h2>待审路线（送审时冻结的确定版本）</h2>
+      <table class="data">
+        <thead><tr><th>路线</th><th>版本</th><th>作者</th><th>投稿时间</th><th></th></tr></thead>
+        <tbody id="reviewQueue"></tbody>
+      </table>
+    </div>
+    <div id="reviewDetail" class="card hidden">
+      <h2 id="rvTitle"></h2>
+      <div class="warnbox" id="rvStale"></div>
+      <div class="editor-grid">
+        <div class="card"><canvas id="rvMap" width="700" height="420"></canvas></div>
+        <div>
+          <p id="rvMeta"></p>
+          <h3>故事（文字版）</h3><p id="rvStory" class="story"></p>
+          <h3>歇脚点</h3><ul id="rvStops" class="stops"></ul>
+          <h3>作者投稿理由</h3><p id="rvReason" class="story"></p>
+          <textarea id="rvComment" maxlength="2000" rows="3" placeholder="审核意见（驳回必填）"></textarea>
+          <div class="submit-row">
+            <button id="approveBtn" class="primary big">✔ 通过（进入发布队列）</button>
+            <button id="changesBtn">要求修改</button>
+            <button id="rejectBtn" class="danger">驳回</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 精选管理 ============ -->
+  <section id="tab-admin" class="tabpane">
+    <div class="card">
+      <h2>发布版本 → 精选卡</h2>
+      <p class="hint">精选只能引用已发布快照，且该版本必须带未失效的通过审核。</p>
+      <div class="row">
+        <input id="searchAdmin" placeholder="按标题搜索已发布版本">
+        <button id="searchAdminBtn">搜索</button>
+      </div>
+      <table class="data"><thead><tr><th>标题</th><th>发布版</th><th>状态</th><th>操作</th></tr></thead>
+      <tbody id="adminPubs"></tbody></table>
+      <h3>当前精选</h3>
+      <table class="data"><thead><tr><th>卡</th><th>推荐语</th><th>引用发布</th><th></th></tr></thead>
+      <tbody id="adminFeatured"></tbody></table>
+    </div>
+  </section>
+
+  <!-- ============ 公开浏览 ============ -->
+  <section id="tab-public" class="tabpane">
+    <div class="card">
+      <h2>精选路线</h2>
+      <div id="publicFeatured" class="featured-grid"></div>
+      <h3>搜索已发布路线</h3>
+      <div class="row"><input id="searchPublic" placeholder="搜标题"><button id="searchPublicBtn">搜索</button></div>
+      <ul id="publicResults" class="pub-list"></ul>
+    </div>
+    <div id="publicDetail" class="card hidden">
+      <button id="pubBack">← 返回</button>
+      <h2 id="pubTitle"></h2>
+      <div id="pubStatus" class="status-note hidden"></div>
+      <canvas id="pubMap" width="760" height="420"></canvas>
+      <p id="pubStory" class="story"></p>
+      <h3>歇脚点</h3><ul id="pubStops" class="stops"></ul>
+      <p class="hint" id="pubBasis"></p>
+    </div>
+  </section>
+</main>
+
+<script src="api.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

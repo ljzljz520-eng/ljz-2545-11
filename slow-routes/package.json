@@ -1,0 +1,29 @@
+{
+  "name": "slow-routes",
+  "version": "1.0.0",
+  "description": "慢行站路线投稿：网页提交折线/故事/歇脚点，Node API 校验 GeoJSON 与审核流程，PostgreSQL 管理草稿分支/发布快照/审核依据",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "migrate": "node src/db/migrate.js",
+    "test": "node test/run-all.js",
+    "test:t1": "node test/t1_validation.js",
+    "test:t2": "node test/t2_concurrency.js",
+    "test:t3": "node test/t3_review.js",
+    "test:t4": "node test/t4_offline_photos.js",
+    "test:t5": "node test/t5_published_featured.js",
+    "test:t6": "node test/t6_jobs_retry.js",
+    "test:t7": "node test/t7_audit_basis.js"
+  },
+  "keywords": ["postgis", "geojson", "review", "optimistic-locking", "slow-travel"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "embedded-postgres": "^18.4.0-beta.17",
+    "express": "^5.2.1",
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "supertest": "^7.3.0"
+  }
+}
