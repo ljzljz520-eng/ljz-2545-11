@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>慢行站 · 路线投稿与审核</title>
+<link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">🚶 慢行站 <span>路线投稿 / 审核 / 精选</span></div>
+  <nav>
+    <button data-view="editor" class="active">投稿编辑</button>
+    <button data-view="mine">我的路线</button>
+    <button data-view="review">审核台</button>
+    <button data-view="featured">精选与搜索</button>
+  </nav>
+  <div class="who">
+    <select id="asUser"></select>
+  </div>
+</header>
+
+<main>
+  <!-- 编辑视图 -->
+  <section id="view-editor" class="view">
+    <div class="grid">
+      <div class="card map-card">
+        <div class="toolbar">
+          <strong>折线编辑</strong>
+          <div class="modes">
+            <label><input type="radio" name="mode" value="vertex" checked /> 拖动顶点</label>
+            <label><input type="radio" name="mode" value="insert" /> 点边插点</label>
+            <label><input type="radio" name="mode" value="rest" /> 落歇脚点</label>
+            <label><input type="radio" name="mode" value="remove" /> 删除顶点</label>
+          </div>
+          <button id="validateBtn" class="ghost">服务端校验</button>
+        </div>
+        <svg id="map" viewBox="0 0 600 420" role="img" aria-label="路线折线编辑画布"></svg>
+        <p class="hint">
+          提示：拖动=整路线乐观锁保存；点边插点/删点=分段合并。<br />
+          插入或删除路段后，依附的歇脚点会提示 <b>自动重定位</b> 或 <b>需要重新落点</b>。
+          服务端会强制做坐标有界、复杂度与自交检查，浏览器检查仅为体验优化。
+        </p>
+        <div id="conflictBox" class="conflict hidden"></div>
+      </div>
+
+      <div class="card">
+        <h3>路线内容</h3>
+        <label>标题 <input id="title" maxlength="120" placeholder="例：苏州河傍晚慢行走廊" /></label>
+        <label>故事 <textarea id="story" rows="6" maxlength="4000" placeholder="写清沿途体验、危险路口、为什么推荐……"></textarea></label>
+
+        <h3>歇脚点 <button id="saveNotesBtn" class="ghost small">保存备注（noteRev 乐观锁）</button></h3>
+        <ul id="pointList" class="points"></ul>
+
+        <h3>照片</h3>
+        <div class="photos">
+          <button id="addPhotoBtn">模拟选择照片（两段上传）</button>
+          <ul id="photoList"></ul>
+        </div>
+
+        <div class="actions">
+          <button id="saveWholeBtn" class="ghost">整包存草稿 <small id="geoRev"></small></button>
+          <button id="saveSegmentBtn" class="ghost">分段提交（可离线重送）</button>
+          <button id="submitBtn" class="primary">提交审核</button>
+        </div>
+        <p id="statusLine" class="status-line"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 我的路线 -->
+  <section id="view-mine" class="view hidden">
+    <div class="card">
+      <h3>我的路线（含草稿分支与历史版本）</h3>
+      <div id="mineList"></div>
+    </div>
+  </section>
+
+  <!-- 审核台 -->
+  <section id="view-review" class="view hidden">
+    <div class="card">
+      <h3>待审核版本</h3>
+      <p class="hint">审核针对“确定的路线几何 + 文字版”。批准即记录该版本指纹与完整快照；
+        作者若改了危险路口，旧审核申请会关闭，必须按新版本重新审核，旧同意不会被沿用。</p>
+      <div id="reviewList"></div>
+    </div>
+  </section>
+
+  <!-- 精选与搜索 -->
+  <section id="view-featured" class="view hidden">
+    <div class="card">
+      <h3>精选卡片（引用发布快照）</h3>
+      <div id="featuredList" class="cards-row"></div>
+      <h3>搜索已发布路线（后台索引，失败会重试）</h3>
+      <input id="searchInput" placeholder="输入标题/故事/歇脚点关键字" />
+      <div id="searchResults"></div>
+    </div>
+  </section>
+</main>
+
+<div id="modal" class="modal hidden">
+  <div class="modal-card">
+    <h4 id="modalTitle"></h4>
+    <pre id="modalBody"></pre>
+    <div class="modal-actions">
+      <button id="modalCancel" class="ghost">取消</button>
+      <button id="modalOk" class="primary">确定</button>
+    </div>
+  </div>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>

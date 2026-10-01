@@ -1,0 +1,46 @@
+# 慢行站 + Postgres：PG 保存草稿分支、发布版、审核理由、精选快照与 outbox。
+# API 默认用内存仓储即可零依赖运行；导出 DATABASE_URL 后切换到 PG 仓储。
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: slowroute
+      POSTGRES_DB: slowroute
+    ports:
+      - "5433:5432"
+    volumes:
+      - slowroute-pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d slowroute"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  api:
+    image: node:20-alpine
+    working_dir: /app
+    command: sh -c "npm install --omit=dev --no-save pg && node src/server.js"
+    environment:
+      DATABASE_URL: postgres://postgres:slowroute@postgres:5432/slowroute
+      PORT: "3000"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  worker:
+    image: node:20-alpine
+    working_dir: /app
+    command: sh -c "npm install --omit=dev --no-save pg && node src/worker.js"
+    environment:
+      DATABASE_URL: postgres://postgres:slowroute@postgres:5432/slowroute
+    volumes:
+      - ./:/app
+    depends_on:
+      - api
+
+volumes:
+  slowroute-pg:

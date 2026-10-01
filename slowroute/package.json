@@ -1,0 +1,16 @@
+{
+  "name": "slowroute",
+  "version": "1.0.0",
+  "description": "慢行站路线投稿：折线/故事/歇脚点提交、GeoJSON 校验、分段合并、审核发布与精选全栈流程",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "worker": "node src/worker.js",
+    "test": "node --test test/"
+  },
+  "engines": { "node": ">=18" },
+  "dependencies": {},
+  "optionalDependencies": { "pg": "^8.11.3"
+  }
+}
